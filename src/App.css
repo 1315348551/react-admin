@@ -1,0 +1,10 @@
+/*
+样式重置
+ */
+
+html,body {
+  height:100%;
+}
+#root{
+  height: 100%;
+}
