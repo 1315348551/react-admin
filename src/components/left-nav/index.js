@@ -3,12 +3,16 @@ import {Link, withRouter } from "react-router-dom";
 import {Icon, Menu} from "antd";
 import { menuList } from '../../config';
 
-console.log(menuList);
 
 const { SubMenu } = Menu;
 const { Item } = Menu;
 
  class LeftNav extends Component{
+ 	constructor(props) {
+ 		super(props);
+ 		this.selectedKey = this.props.location.pathname;
+ 		this.menus = this.createMenu(this.selectedKey);
+	}
 
  	createItem = (menu) => {
 		return <Item key={menu.key}>
@@ -39,20 +43,14 @@ const { Item } = Menu;
 				//返回一级菜单
 				return this.createItem(menu);
 			}
-
-
 		})
 	};
 
 	render() {
-		const path = this.props.location.pathname;
 
-		const menus = this.createMenu(path);
-
-
-		return <Menu theme="dark" defaultSelectedKeys={[path]} defaultOpenKeys={[this.openKey]} mode="inline">
+		return <Menu theme="dark" defaultSelectedKeys={[this.selectedKey]} defaultOpenKeys={[this.openKey]} mode="inline">
 			{
-				menus
+				this.menus
 			}
 		</Menu>
 	}
