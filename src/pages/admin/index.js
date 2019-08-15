@@ -1,15 +1,26 @@
 import React , { Component } from 'react';
+import { message , Spin , Layout } from 'antd';
+import { Link } from 'react-router-dom'
+import LeftNav from '../../components/left-nav/index'
 import { reqValidateUser } from '../../api'
 import data from '../../utils/store';
 import { getItem } from '../../utils/storage';
-import { message , Spin } from 'antd';
 
 import './index.less';
+import logo from '../../assets/images/logo.png';
+const { Header, Content, Footer, Sider } = Layout;
+
+
 
 export default class Admin extends Component {
 	state = {
-		isLoading:true
+		isLoading:true,
+		collapsed: false,
+		isDisplay: 'block'
 	};
+	/*
+	检查用户是否有进行登录
+	 */
 	checkUserLogin =() => {
 		if(!data.user._id) {
 			const user = getItem();
@@ -29,7 +40,7 @@ export default class Admin extends Component {
 				})
 				.catch(() => {
 					//错误提示
-					message.error("请先登录",3)
+					message.error("请先登录",3);
 					this.props.history.replace('/login');
 				});
 			//需要loading
@@ -39,14 +50,37 @@ export default class Admin extends Component {
 			return  false
 		}
 	};
+
+	onCollapse = (collapsed) => {
+		this.setState({
+			collapsed,
+			isDisplay:collapsed ? 'none' : 'display'
+		})
+	};
+
 	render() {
 
 		const isLoading = this.checkUserLogin();
 
 		if(isLoading) return <Spin className="admin-loading" tip="loading....." size="large"/>;
 
-		return <div>
-			Admin
-		</div>
+		const { isDisplay, collapsed } = this.state;
+
+		return <Layout style={{ minHeight: '100vh' }}>
+			<Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse}>
+				<Link to="/home" className="admin-logo" >
+					<img src={logo} alt="logo"/>
+					<h1 style={{display: isDisplay}}>硅谷后台</h1>
+				</Link>
+				<LeftNav />
+			</Sider>
+			<Layout>
+				<Header style={{ background: '#fff', padding: 0 }} />
+				<Content style={{ margin: '0 16px' }}>
+					<div style={{ padding: 24, background: '#fff', minHeight: 360 }}>Bill is a cat.</div>
+				</Content>
+				<Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer>
+			</Layout>
+		</Layout>
 	}
 }
