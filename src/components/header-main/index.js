@@ -1,14 +1,28 @@
 import React, { Component } from 'react';
 import { Button, Modal, message } from "antd";
 import { withRouter } from 'react-router-dom';
+import dayjs from 'dayjs';
+
 import { removeItem } from '../../utils/storage'
 import data from '../../utils/store'
+import { menuList } from '../../config';
+import { reqWeather } from '../../api';
 
 
 
 import './index.less';
 
  class HeaderMain extends Component {
+ 	constructor() {
+ 		super();
+	  this.state = {
+		 title:'',
+		 time:this.getTime(),
+			weather:'晴',
+			dayPictureUrl:"http://api.map.baidu.com/images/weather/day/qing.png"
+
+	  };
+  }
 
  	//退出登录功能
  	logout = () => {
@@ -29,18 +43,80 @@ import './index.less';
 		})
 	};
 
-	render() {
+ 	//初始化和更新都会走的生命周期函数
+ 	static getDerivedStateFromProps(nextProps,prevState) {
+ 		const { pathname } = nextProps.location;
+ 		if(pathname === '/') {
+ 			return {
+ 				title:'首页'
+			}
+		}
+		//生成title
+		for (let i = 0; i <menuList.length ; i++) {
+			const menu = menuList[i];
+			if (menu.children) {
+				const children = menu.children;
+				for (let j = 0; j <children.length ; j++) {
+					const cMenu = children[j];
+					if (cMenu.key === pathname) {
+						//返回一个新状态，自动更新状态
+						return {
+							title:cMenu.title,
+						}
+					}
+				}
+			} else {
+				if (menu.key === pathname) {
+					//返回一个新状态，自动更新状态
+					return {
+						title:menu.title,
+					}
+				}
+			}
+		}
+	}
+
+	getTime = () => dayjs(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+
+	componentDidMount() {
+ 		//开启定时器
+		this.timer = setInterval(() => {
+			//更新状态
+			this.setState({
+				time:this.getTime()
+			})
+		},1000);
+		//请求天气
+		reqWeather('深圳')
+			.then((res) => {
+				message.success('更新天气成功',3);
+				this.setState(res);
+			})
+			.catch((err) => {
+				message.error(err, 3);
+			})
+	}
+
+	componentWillUnmount() {
+		//清除定时器
+		clearInterval(this.timer);
+	}
+
+	 render() {
+
+ 		const { title, time, weather, dayPictureUrl } = this.state;
+
 		return <div className="header-main">
 			<div className="header-main-top">
 				<span>欢迎，{data.user.username}</span>
 				<Button type="link" onClick={this.logout}>退出</Button>
 			</div>
 			<div className="header-main-bottom">
-				<h3>xx管理</h3>
+				<h3>{title}</h3>
 				<div>
-					<span>xxx时间</span>
-					<img src="http://api.map.baidu.com/images/weather/day/qing.png" alt="weather"/>
-					<span>晴</span>
+					<span>{time}</span>
+					<img src={dayPictureUrl} alt="weather"/>
+					<span>{weather}</span>
 				</div>
 			</div>
 		</div>
